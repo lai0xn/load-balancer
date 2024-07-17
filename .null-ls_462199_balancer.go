@@ -22,11 +22,10 @@ type Balancer interface {
 	AddServer(*Server)
 }
 
-func NewBalancer(port string, algo Algorithm) Balancer {
+func NewBalancer(port string) Balancer {
 	return &balancer{
 		PORT:      port,
 		Scheduler: &scheduler{},
-		Algorithm: algo,
 	}
 }
 
@@ -35,7 +34,10 @@ type balancer struct {
 	Conns     []*net.Conn
 	Servers   []*Server
 	Scheduler Scheduler
-	Algorithm Algorithm
+}
+
+type Config struct {
+	Algorithm
 }
 
 func (b *balancer) Listen() {
@@ -64,7 +66,7 @@ func (b *balancer) HandleConn(conn net.Conn) {
 		conn.Close()
 		return
 	}
-	server := b.Scheduler.GetServer(b.Servers, b.Algorithm)
+	server := b.Scheduler.GetLeastTraffic(b.Servers)
 	url := fmt.Sprintf("http://%s:%s%s", server.URL, server.PORT, req.URL.Path)
 
 	request, err := http.NewRequest(req.Method, url, req.Body)

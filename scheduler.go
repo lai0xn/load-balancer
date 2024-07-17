@@ -1,23 +1,26 @@
 package main
 
 type Scheduler interface {
-	IsActive()
-	GetLeastTraffic(severs []*Server) *Server
-	CheckServer()
+	GetServer(severs []*Server, algo Algorithm) *Server
 }
 
-type scheduler struct{}
+type scheduler struct {
+	current int
+}
 
-func (s *scheduler) IsActive() {}
-
-func (s *scheduler) GetLeastTraffic(servers []*Server) *Server {
-	leastActive := servers[0]
-	for _, server := range servers {
-		if server.ActiveConnections < leastActive.ActiveConnections && server.IsAlive {
-			leastActive = server
+func (s *scheduler) GetServer(servers []*Server, algo Algorithm) *Server {
+	if algo == LeastTraffic {
+		leastActive := servers[0]
+		for _, server := range servers {
+			if server.ActiveConnections < leastActive.ActiveConnections && server.IsAlive {
+				leastActive = server
+			}
 		}
-	}
-	return leastActive
-}
+		return leastActive
 
-func (s *scheduler) CheckServer() {}
+	} else {
+		index := (s.current + 1) % len(servers)
+		s.current++
+		return servers[index]
+	}
+}

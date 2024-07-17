@@ -1,7 +1,8 @@
 package main
 
 func main() {
-	b := NewBalancer(":8080")
+	// choose between least traffic and round robin algorithms
+	b := NewBalancer(":8080", RoundRobin)
 
 	s, err := BuildServer("http://google.com:80")
 	if err != nil {
